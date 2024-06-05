@@ -1,0 +1,53 @@
+// Lista de dicionários representando os três modelos do Amazon Bedrock
+const modelosDisponiveis = [
+    { nome: "Claude 3 Opus", pontuacaoDesempenho: 9, precoMensal: 600 },
+    { nome: "Claude 3 Sonnet", pontuacaoDesempenho: 8, precoMensal: 450 },
+    { nome: "Claude 3 Haiku", pontuacaoDesempenho: 7, precoMensal: 350 },
+];
+
+// Função para recomendar o modelo com base no orçamento
+function recomendarModelo(modelos, orcamento) {
+    // Verificar se o orçamento é inferior a 250
+    if (orcamento < 250) {
+        return [null, "Seu orçamento é muito baixo para recomendar um modelo adequado."];
+    }
+
+    // Filtrar os modelos que estão dentro do orçamento
+    const modelosDentroOrcamento = modelos.filter(modelo => modelo.precoMensal <= orcamento);
+
+    // Caso nenhum modelo esteja dentro do orçamento, retornar o mais próximo
+    if (modelosDentroOrcamento.length === 0) {
+        const modeloMaisProximo = modelos.reduce((prev, curr) => 
+            Math.abs(curr.precoMensal - orcamento) < Math.abs(prev.precoMensal - orcamento) ? curr : prev
+        );
+        return [modeloMaisProximo.nome, "Este modelo está mais próximo do seu orçamento."];
+    }
+
+    // Encontrar o modelo com o melhor desempenho dentro do orçamento
+    const melhorModelo = modelosDentroOrcamento.reduce((prev, curr) => 
+        curr.pontuacaoDesempenho > prev.pontuacaoDesempenho ? curr : prev
+    );
+    return [melhorModelo.nome, "Melhor desempenho dentro do seu orçamento."];
+}
+
+// Simulando a leitura do orçamento do usuário usando prompt (no navegador) ou readline (em ambiente Node.js)
+const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+readline.question('Digite seu orçamento: ', orcamentoUsuario => {
+    const orcamento = parseFloat(orcamentoUsuario.trim());
+
+    // Chamada da função para recomendar o modelo
+    const [modeloRecomendado, motivo] = recomendarModelo(modelosDisponiveis, orcamento);
+
+    // Saída da recomendação
+    if (modeloRecomendado) {
+        console.log(`${modeloRecomendado}. ${motivo}`);
+    } else {
+        console.log(motivo);
+    }
+
+    readline.close();
+});
