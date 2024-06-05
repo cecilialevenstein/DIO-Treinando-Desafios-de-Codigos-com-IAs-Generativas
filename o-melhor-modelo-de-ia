@@ -1,0 +1,83 @@
+class ModeloIA {
+    constructor(nome, desempenho, velocidade, custo, capacidades) {
+        this.nome = nome;
+        this.desempenho = desempenho;
+        this.velocidade = velocidade;
+        this.custo = custo;
+        this.capacidades = capacidades;
+    }
+
+    toString() {
+        return this.nome;
+    }
+}
+
+function recomendarModelo(caracteristicas, modelos) {
+    let modeloRecomendado = null;
+    const capacidadesUsuario = caracteristicas.Capacidades.map(capacidade => capacidade.toLowerCase());
+
+    for (const modelo of modelos) {
+        const capacidadesModelo = modelo.capacidades.map(capacidade => capacidade.toLowerCase());
+
+        if (capacidadesUsuario.every(capacidade => capacidadesModelo.includes(capacidade))) {
+            if (!modeloRecomendado || (
+                modelo.desempenho >= caracteristicas.Desempenho &&
+                modelo.velocidade >= caracteristicas.Velocidade &&
+                modelo.custo <= caracteristicas.Custo
+            )) {
+                modeloRecomendado = modelo;
+            }
+        }
+    }
+
+    return modeloRecomendado ? modeloRecomendado : "Nenhum modelo encontrado.";
+}
+
+function gerarExplicacao(modelo, caracteristicas) {
+    if (modelo instanceof ModeloIA) {
+        return `O ${modelo.nome} é o modelo recomendado.`;
+    } else {
+        return modelo;
+    }
+}
+
+function obterCaracteristicas(callback) {
+    const readline = require('readline').createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    const caracteristicas = {};
+
+    readline.question('Digite o desempenho: ', desempenho => {
+        caracteristicas.Desempenho = parseInt(desempenho);
+
+        readline.question('Digite a velocidade: ', velocidade => {
+            caracteristicas.Velocidade = parseInt(velocidade);
+
+            readline.question('Digite o custo: ', custo => {
+                caracteristicas.Custo = parseInt(custo);
+
+                readline.question('Digite as capacidades (separadas por vírgula): ', capacidades => {
+                    caracteristicas.Capacidades = capacidades.split(',').map(capacidade => capacidade.trim());
+
+                    readline.close();
+                    callback(caracteristicas);
+                });
+            });
+        });
+    });
+}
+
+// Lista de modelos Claude 3 disponíveis na plataforma Amazon Bedrock
+const modelos = [
+    new ModeloIA("Claude 3 Sonnet", 8, 10, 6, ["pesquisa", "desenvolvimento acelerado", "codificação", "recuperação de informações"]),
+    new ModeloIA("Claude 3 Haiku", 7, 9, 5, ["velocidade", "resumo de dados não estruturados"]),
+    new ModeloIA("Claude 3 Opus", 9, 10, 5, ["pesquisa", "desenvolvimento acelerado"]),
+];
+
+obterCaracteristicas(caracteristicasEntrada => {
+    const melhorModelo = recomendarModelo(caracteristicasEntrada, modelos);
+    const explicacao = gerarExplicacao(melhorModelo, caracteristicasEntrada);
+    console.log(explicacao);
+});
